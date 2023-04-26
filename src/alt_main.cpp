@@ -3,14 +3,10 @@
 #include "gpio.h"
 #include "spi.h"
 #include "usart.h"
-#include "nRF24L01old.h"
-#include "RF24.h"
-#include "Nrf24l01.h"
+#include "NRF24L01.h"
 
+NRF24L01 nRF24L01(&hspi1, NRF_CE_GPIO_Port, NRF_CE_Pin, NRF_CSN_GPIO_Port, NRF_CSN_Pin);
 
-Nrf24l01 test(&hspi1, NRF_CE_GPIO_Port, NRF_CE_Pin, NRF_CSN_GPIO_Port, NRF_CSN_Pin);
-
-RF24 radio(&hspi1, NRF_CE_GPIO_Port, NRF_CE_Pin, NRF_CSN_GPIO_Port, NRF_CSN_Pin);
 const uint64_t address = 0xF0F0F0F0E1LL;
 uint8_t button_state = 0;
 
@@ -24,9 +20,9 @@ int alt_main() {
     }
     HAL_UART_Transmit(&huart1, buff, strlen(message), 2000);
 
-    test.init();
-    test.openWritingPipe(0xF0F0F0F0E1LL, 76);
-    test.printAllRegisters();
+    nRF24L01.init();
+    nRF24L01.openWritingPipe(0xF0F0F0F0E1LL, 76);
+    nRF24L01.printAllRegisters();
 /*
     radio.begin();                  //Starting the Wireless communication
     radio.openWritingPipe(address); //Setting the address where we will send the data
@@ -39,7 +35,7 @@ int alt_main() {
         for (uint16_t i = 0; i < strlen(message); i++) {
             buff[i] = message[i];
         }
-        bool result = test.write(buff); 
+        bool result = nRF24L01.write(buff); 
 
         buff[0] = result ? '1' : '0';
         buff[1] = '\r';

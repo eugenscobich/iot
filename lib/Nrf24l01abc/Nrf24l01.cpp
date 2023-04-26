@@ -1,5 +1,5 @@
 
-#include "Nrf24l01.h"
+#include "NRF24L01.h"
 
 #define _BV(b) (1UL << (b))
 
@@ -7,7 +7,7 @@
 #define min(a, b) (a < b ? a : b)
 
 
-Nrf24l01::Nrf24l01(SPI_HandleTypeDef* _hspi, GPIO_TypeDef* _nrf_ce_GPIOx, uint16_t _nrf_ce_GPIO_Pin, GPIO_TypeDef* _nrf_csn_GPIOx, uint16_t _nrf_csn_GPIO_Pin) :
+NRF24L01::NRF24L01(SPI_HandleTypeDef* _hspi, GPIO_TypeDef* _nrf_ce_GPIOx, uint16_t _nrf_ce_GPIO_Pin, GPIO_TypeDef* _nrf_csn_GPIOx, uint16_t _nrf_csn_GPIO_Pin) :
     hspi(_hspi), 
     nrf_ce_GPIOx(_nrf_ce_GPIOx),
     nrf_ce_GPIO_Pin(_nrf_ce_GPIO_Pin),
@@ -19,24 +19,24 @@ Nrf24l01::Nrf24l01(SPI_HandleTypeDef* _hspi, GPIO_TypeDef* _nrf_ce_GPIOx, uint16
     
 }
 
-void Nrf24l01::ceEnable() {
+void NRF24L01::ceEnable() {
     HAL_GPIO_WritePin(nrf_ce_GPIOx, nrf_ce_GPIO_Pin, GPIO_PIN_SET);
 }
 
-void Nrf24l01::ceDisable() {
+void NRF24L01::ceDisable() {
     HAL_GPIO_WritePin(nrf_ce_GPIOx, nrf_ce_GPIO_Pin, GPIO_PIN_RESET);
 }
 
-void Nrf24l01::csHigh() {
+void NRF24L01::csHigh() {
     HAL_GPIO_WritePin(nrf_csn_GPIOx, nrf_csn_GPIO_Pin, GPIO_PIN_SET);
 }
 
-void Nrf24l01::csLow() {
+void NRF24L01::csLow() {
     HAL_GPIO_WritePin(nrf_csn_GPIOx, nrf_csn_GPIO_Pin, GPIO_PIN_RESET);
 }
 
 // Write single data
-void Nrf24l01::writeRegister(uint8_t reg, uint8_t data) {
+void NRF24L01::writeRegister(uint8_t reg, uint8_t data) {
     uint8_t buf[2];
     buf[0] = W_REGISTER | reg;
     buf[1] = data;
@@ -50,7 +50,7 @@ void Nrf24l01::writeRegister(uint8_t reg, uint8_t data) {
 }
 
 // Write multiple data
-void Nrf24l01::writeRegister(uint8_t reg, uint8_t *data, uint32_t size) {
+void NRF24L01::writeRegister(uint8_t reg, uint8_t *data, uint32_t size) {
     uint8_t buf[1];
     buf[0] = W_REGISTER | reg;
     
@@ -63,7 +63,7 @@ void Nrf24l01::writeRegister(uint8_t reg, uint8_t *data, uint32_t size) {
 }
 
 // Read single data
-uint8_t Nrf24l01::readRegister(uint8_t reg) {
+uint8_t NRF24L01::readRegister(uint8_t reg) {
     uint8_t data = 0;
     uint8_t buf[1];
     buf[0] = R_REGISTER | reg;
@@ -77,7 +77,7 @@ uint8_t Nrf24l01::readRegister(uint8_t reg) {
 }
 
 // Read multiple data
-void Nrf24l01::readRegister(uint8_t reg, uint8_t *data, uint32_t size) {
+void NRF24L01::readRegister(uint8_t reg, uint8_t *data, uint32_t size) {
     uint8_t buf[1];
     buf[0] = R_REGISTER | reg;
     csLow();
@@ -89,14 +89,14 @@ void Nrf24l01::readRegister(uint8_t reg, uint8_t *data, uint32_t size) {
 }
 
 
-void Nrf24l01::sendCommand(uint8_t command) {
+void NRF24L01::sendCommand(uint8_t command) {
     csLow();
     HAL_StatusTypeDef halStatus = HAL_SPI_Transmit(hspi, &command, 1, 1000);
     handleSpiStatus(halStatus, 8);
     csHigh();
 }
 
-void Nrf24l01::init() {
+void NRF24L01::init() {
     //ceDisable();
     HAL_Delay(5);
     reset();  
@@ -111,11 +111,11 @@ void Nrf24l01::init() {
     //ceEnable();
 }
 
-void Nrf24l01::setRetries(uint8_t delay, uint8_t count) {
+void NRF24L01::setRetries(uint8_t delay, uint8_t count) {
     writeRegister(SETUP_RETR, static_cast<uint8_t>(min(15, delay) << ARD | min(15, count)));
 }
 
-bool Nrf24l01::setDataRate(Nrf24l01DataRateEnum nrf24l01DataRate) {
+bool NRF24L01::setDataRate(NRF24L01DataRateEnum NRF24L01DataRate) {
     uint8_t rfSetup = readRegister(RF_SETUP);
 
     rfSetup = static_cast<uint8_t>(rfSetup & ~(_BV(RF_DR_HIGH)));
@@ -129,7 +129,7 @@ bool Nrf24l01::setDataRate(Nrf24l01DataRateEnum nrf24l01DataRate) {
 }
 
 
-void Nrf24l01::reset() {
+void NRF24L01::reset() {
     // Reset pins
     ceDisable();
 
@@ -171,21 +171,21 @@ void Nrf24l01::reset() {
 }
 
 
-void Nrf24l01::powerUp() {
+void NRF24L01::powerUp() {
     uint8_t new_config = readRegister(CONFIG);
     new_config |= 1 << 1;
 
     writeRegister(CONFIG, new_config);
 }
 
-void Nrf24l01::powerDown() {
+void NRF24L01::powerDown() {
     uint8_t new_config = readRegister(CONFIG);
     new_config &= 0xFD;
 
     writeRegister(CONFIG, new_config);
 }
 
-void Nrf24l01::openWritingPipe(uint64_t address, uint8_t cannel) {
+void NRF24L01::openWritingPipe(uint64_t address, uint8_t cannel) {
     ceDisable();
     writeRegister(RF_CH, cannel);
     writeRegister(RX_ADDR_P0, reinterpret_cast<uint8_t*>(&address), addressWidth);
@@ -197,13 +197,13 @@ void Nrf24l01::openWritingPipe(uint64_t address, uint8_t cannel) {
 }
 
 
-void Nrf24l01::setTxMode() {
+void NRF24L01::setTxMode() {
     uint8_t new_config = readRegister(CONFIG);
     new_config &= 0xFE;
     writeRegister(CONFIG, new_config);
 }
 
-bool Nrf24l01::write(uint8_t *data) {
+bool NRF24L01::write(uint8_t *data) {
     
     uint8_t cmd = W_TX_PAYLOAD;
 
@@ -231,7 +231,7 @@ bool Nrf24l01::write(uint8_t *data) {
     return false;
 }
 
-void Nrf24l01::openReadingPipe(uint64_t address, uint8_t channel) {
+void NRF24L01::openReadingPipe(uint64_t address, uint8_t channel) {
 	// disable the chip before configuring the device
 	ceDisable();
 
@@ -268,7 +268,7 @@ void Nrf24l01::openReadingPipe(uint64_t address, uint8_t channel) {
 }
 
 
-uint8_t Nrf24l01::isDataAvailable (int pipenum) {
+uint8_t NRF24L01::isDataAvailable (int pipenum) {
 	uint8_t status = readRegister(STATUS);
 	if ((status&(1<<6))&&(status&(pipenum<<1))) {
 		writeRegister(STATUS, (1<<6));
@@ -278,7 +278,7 @@ uint8_t Nrf24l01::isDataAvailable (int pipenum) {
 }
 
 
-void Nrf24l01::receive(uint8_t *data) {
+void NRF24L01::receive(uint8_t *data) {
 	uint8_t cmdtosend = 0;
 
 	// select the device
@@ -304,7 +304,7 @@ void Nrf24l01::receive(uint8_t *data) {
 
 
 // Read all the Register data
-void Nrf24l01::readAll (uint8_t *data)
+void NRF24L01::readAll (uint8_t *data)
 {
 	for (int i=0; i<10; i++)
 	{
@@ -330,7 +330,7 @@ void Nrf24l01::readAll (uint8_t *data)
 }
 
 
-void Nrf24l01::setPayloadSize(uint8_t size) {
+void NRF24L01::setPayloadSize(uint8_t size) {
     // payload size must be in range [1, 32]
     uint8_t payload_size = static_cast<uint8_t>(max(1, min(32, size)));
 
@@ -340,7 +340,7 @@ void Nrf24l01::setPayloadSize(uint8_t size) {
     }
 }
 
-void Nrf24l01::handleSpiStatus(HAL_StatusTypeDef _status, uint8_t count) {
+void NRF24L01::handleSpiStatus(HAL_StatusTypeDef _status, uint8_t count) {
     if (_status != HAL_OK) {
         HAL_GPIO_WritePin(GPIOC, GPIO_PIN_13, GPIO_PIN_SET);
         for (size_t i = 0; i < count; i++)
@@ -361,7 +361,7 @@ void Nrf24l01::handleSpiStatus(HAL_StatusTypeDef _status, uint8_t count) {
     }
 }
 
-void Nrf24l01::printAllRegisters() {
+void NRF24L01::printAllRegisters() {
     printRegister(CONFIG);
     printRegister(EN_AA);
     printRegister(EN_RXADDR);
@@ -390,7 +390,7 @@ void Nrf24l01::printAllRegisters() {
     printRegister(FEATURE);
 }
 
-void Nrf24l01::printRegister(uint8_t reg) {
+void NRF24L01::printRegister(uint8_t reg) {
 
         uint8_t data = readRegister(reg);
 

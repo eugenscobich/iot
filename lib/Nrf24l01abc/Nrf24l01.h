@@ -1,7 +1,7 @@
-#ifndef __Nrf24l01_H__
-#define __Nrf24l01_H__
+#ifndef __NRF24L01_H__
+#define __NRF24L01_H__
 
-#include "spi.h"
+#include "stm32f1xx_hal.h"
 #include "usart.h"
 #include "string.h"
 
@@ -115,10 +115,10 @@ typedef enum {
     NRF24L01_1MBPS = 0,
     NRF24L01_2MBPS,
     NRF24L01_250KBPS
-} Nrf24l01DataRateEnum;
+} NRF24L01DataRateEnum;
 
 
-class Nrf24l01 {
+class NRF24L01 {
 
 private:
     SPI_HandleTypeDef* hspi;
@@ -144,7 +144,7 @@ public:
     void handleSpiStatus(HAL_StatusTypeDef _status, uint8_t count);
 
 
-    Nrf24l01(SPI_HandleTypeDef* _hspi, GPIO_TypeDef* _nrf_ce_GPIOx, uint16_t _nrf_ce_GPIO_Pin, GPIO_TypeDef* _nrf_csn_GPIOx, uint16_t _nrf_csn_GPIO_Pin);
+    NRF24L01(SPI_HandleTypeDef* _hspi, GPIO_TypeDef* _nrf_ce_GPIOx, uint16_t _nrf_ce_GPIO_Pin, GPIO_TypeDef* _nrf_csn_GPIOx, uint16_t _nrf_csn_GPIO_Pin);
 
     void writeRegister(uint8_t reg, uint8_t data);
     void writeRegister(uint8_t reg, uint8_t *data, uint32_t size);
@@ -161,8 +161,8 @@ public:
     void printRegister(uint8_t reg);
     void printAllRegisters();
     void setRetries(uint8_t delay, uint8_t count);
-    bool setDataRate(Nrf24l01DataRateEnum nrf24l01DataRate);
+    bool setDataRate(NRF24L01DataRateEnum NRF24L01DataRate);
     void setPayloadSize(uint8_t size);
 };
 
-#endif // __Nrf24l01_H__
+#endif // __NRF24L01_H__
